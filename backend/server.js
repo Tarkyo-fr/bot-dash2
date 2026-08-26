@@ -38,6 +38,11 @@ app.use("/auth", authRoutes);
 app.use("/api/guilds", guildsRoutes);
 app.use("/api/guilds", configRoutes);
 
+app.use(["/auth", "/api"], (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  next();
+});
+
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => {
