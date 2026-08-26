@@ -21,5 +21,7 @@ const defaultData = {
 
 export const db = new Low(new JSONFile(file), defaultData);
 await db.read();
-db.data ||= defaultData;
+// Fusionne les clés par défaut manquantes (utile quand db.json existe déjà
+// depuis une version antérieure du schéma, ex: avant l'ajout de botStatus/logs).
+db.data = { ...defaultData, ...db.data };
 await db.write();
