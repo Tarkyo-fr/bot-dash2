@@ -9,7 +9,7 @@ const MANAGE_GUILD = 0x20;
 // Liste les serveurs où l'utilisateur a la permission de gérer le bot
 router.get("/", requireAuth, async (req, res) => {
   await db.read();
-  const guilds = (req.session.guilds || [])
+  const guilds = (req.authSession.guilds || [])
     .filter((g) => g.owner || (BigInt(g.permissions || 0) & BigInt(MANAGE_GUILD)) === BigInt(MANAGE_GUILD))
     .map((g) => ({
       id: g.id,

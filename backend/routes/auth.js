@@ -1,5 +1,7 @@
 import { Router } from "express";
 import axios from "axios";
+import { createSession, deleteSession } from "../sessionStore.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -22,7 +24,9 @@ router.get("/discord", (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?${params}`);
 });
 
-// Étape 2 : callback — échange le code contre un token, récupère user + guilds
+// Étape 2 : callback — échange le code contre un token, récupère user + guilds,
+// crée une session côté serveur, et renvoie le token de session au frontend
+// via un paramètre d'URL (le frontend le stocke ensuite dans localStorage).
 router.get("/discord/callback", async (req, res) => {
   const { code } = req.query;
   if (!code) return res.redirect(`${FRONTEND_URL}/login?error=missing_code`);
@@ -48,32 +52,31 @@ router.get("/discord/callback", async (req, res) => {
       axios.get("https://discord.com/api/users/@me/guilds", { headers: authHeader }),
     ]);
 
-    // On ne garde que les serveurs où l'utilisateur peut gérer le bot
-    // (MANAGE_GUILD ou owner). Le filtre "bot déjà présent" se fait
-    // côté route /api/guilds en croisant avec BOT_CLIENT_ID si besoin
-    // via l'API Discord "guilds/{id}" (nécessite le bot token, pas fait ici
-    // pour rester simple — voir routes/guilds.js pour la suite).
-    req.session.user = {
-      id: userRes.data.id,
-      username: userRes.data.username,
-      avatar: userRes.data.avatar,
-    };
-    req.session.guilds = guildsRes.data;
+    const sessionToken = createSession({
+      user: {
+        id: userRes.data.id,
+        username: userRes.data.username,
+        avatar: userRes.data.avatar,
+      },
+      guilds: guildsRes.data,
+    });
 
-    res.redirect(`${FRONTEND_URL}/dashboard`);
+    res.redirect(`${FRONTEND_URL}/auth/callback?token=${sessionToken}`);
   } catch (err) {
     console.error("[auth] callback error:", err.response?.data || err.message);
     res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
   }
 });
 
-router.get("/me", (req, res) => {
-  if (!req.session.user) return res.status(401).json({ error: "Non authentifié" });
-  res.json({ user: req.session.user });
+router.get("/me", requireAuth, (req, res) => {
+  res.json({ user: req.authSession.user });
 });
 
 router.post("/logout", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (token) deleteSession(token);
+  res.json({ ok: true });
 });
 
 export default router;

@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "express-session": "^1.18.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "axios": "^1.7.2",

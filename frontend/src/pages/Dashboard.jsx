@@ -17,8 +17,12 @@ export default function Dashboard() {
   }, [navigate]);
 
   const logout = async () => {
-    await api.post("/auth/logout");
-    navigate("/login");
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      localStorage.removeItem("bg_token");
+      navigate("/login");
+    }
   };
 
   return (

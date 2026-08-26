@@ -27,7 +27,7 @@ router.put("/:guildId/config", requireAuth, requireGuildManage, async (req, res)
     autoRoleId: autoRoleId ?? "",
     prefix: prefix ?? "!",
     updatedAt: new Date().toISOString(),
-    updatedBy: req.session.user.id,
+    updatedBy: req.authSession.user.id,
   };
   db.data.guildConfigs[guildId] = config;
   await db.write();

@@ -1,6 +1,5 @@
 import "dotenv/config";
 import express from "express";
-import session from "express-session";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.js";
@@ -11,25 +10,15 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === "production";
 
+// Railway/Render sont derrière un proxy HTTPS.
 if (isProd) app.set("trust proxy", 1);
 
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: isProd ? "none" : "lax",
-      secure: isProd,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
-  })
-);
-
+// Les routes /auth et /api ne doivent jamais être mises en cache par le
+// navigateur, sinon un utilisateur peut voir les données d'une requête
+// précédente (ou un statut de connexion périmé).
 app.use(["/auth", "/api"], (req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   next();
