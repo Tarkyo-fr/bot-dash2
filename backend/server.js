@@ -34,14 +34,24 @@ app.use(
   })
 );
 
-app.use("/auth", authRoutes);
-app.use("/api/guilds", guildsRoutes);
-app.use("/api/guilds", configRoutes);
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.use(express.json());
+app.use(
+  session({
+    // ... (ne touche pas à cette partie)
+  })
+);
 
+// ⬇️ Ce bloc doit être ICI, avant les routes
 app.use(["/auth", "/api"], (req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   next();
 });
+
+// ⬇️ Les routes viennent après
+app.use("/auth", authRoutes);
+app.use("/api/guilds", guildsRoutes);
+app.use("/api/guilds", configRoutes);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
