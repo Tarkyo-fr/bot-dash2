@@ -89,6 +89,41 @@ Tourne sur http://localhost:5173
 > monté sur `backend/data`, ou (recommandé pour la prod) migrer vers Railway
 > Postgres/MongoDB Atlas — voir la section suivante.
 
+## 6. Nouvelles fonctionnalités : setup complémentaire
+
+### Statut du bot en direct (en ligne/hors ligne, nb serveurs, uptime)
+
+BotGhost n'expose pas ce statut directement. Le principe : le bot lui-même
+envoie un signal de vie ("heartbeat") à ton backend toutes les quelques minutes.
+
+1. Dans BotGhost, crée un **Custom Event** avec un trigger **Timed Message**
+   (ou équivalent planifié), fréquence toutes les 2-3 minutes
+2. Ajoute une action **Send an API Request** :
+   - Méthode : `POST`
+   - URL : `https://ton-backend.up.railway.app/api/bot/heartbeat`
+   - Body (JSON) :
+     ```json
+     { "secret": "LA_MEME_VALEUR_QUE_BOTGHOST_HEARTBEAT_SECRET", "guildCount": {Bot.guilds.length} }
+     ```
+     (adapte `{Bot.guilds.length}` à la vraie variable BotGhost donnant le nombre de serveurs — vérifie dans le sélecteur de variables)
+3. Le dashboard affiche "hors ligne" si aucun heartbeat reçu depuis 5 minutes
+
+### Bouton "Ajouter le bot"
+
+Nécessite `DISCORD_BOT_TOKEN` (le vrai token du bot, pas le Client Secret
+OAuth2) dans les variables Railway, pour que le backend puisse vérifier sur
+quels serveurs le bot est déjà présent. Sans cette variable, le bouton
+"Ajouter le bot" ne s'affiche jamais (fallback silencieux).
+
+### Rôles à réaction / Commandes activées
+
+Ces données sont poussées vers BotGhost en JSON stringifié dans une variable
+texte (`{reactionRolesJson}`, `{commandsJson}`). Côté BotGhost, il faudra un
+Custom Command/Event qui **parse ce JSON** (via les actions de traitement JSON
+de BotGhost) pour s'en servir réellement dans le comportement du bot — le
+dashboard s'occupe du stockage et de l'envoi, pas de l'interprétation
+BotGhost-side.
+
 ## Prochaines étapes suggérées
 
 - Remplacer lowdb (fichier JSON) par MongoDB/PostgreSQL une fois que ça tourne

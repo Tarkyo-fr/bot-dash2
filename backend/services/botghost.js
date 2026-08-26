@@ -34,3 +34,50 @@ export async function pushConfigToBotGhost(guildId, config) {
   );
   return data;
 }
+
+/**
+ * Pousse la liste des rôles à réaction d'un serveur vers BotGhost.
+ * Envoyé en JSON stringifié dans une variable texte — côté BotGhost, il faut
+ * un Custom Command/Event qui parse ce JSON (via les actions JSON de BotGhost)
+ * pour afficher/gérer les réactions réellement.
+ */
+export async function pushReactionRolesToBotGhost(guildId, reactionRoles) {
+  const { BOTGHOST_BOT_ID, BOTGHOST_WEBHOOK_EVENT_ID, BOTGHOST_API_TOKEN } = process.env;
+  if (!BOTGHOST_BOT_ID || !BOTGHOST_WEBHOOK_EVENT_ID || !BOTGHOST_API_TOKEN) {
+    console.warn("[botghost] Webhook non configuré — push reaction roles ignoré.");
+    return { skipped: true };
+  }
+  const url = `https://api.botghost.com/webhook/${BOTGHOST_BOT_ID}/${BOTGHOST_WEBHOOK_EVENT_ID}`;
+  const variables = [
+    { name: "Guild ID", variable: "{guildId}", value: guildId },
+    { name: "Reaction Roles JSON", variable: "{reactionRolesJson}", value: JSON.stringify(reactionRoles) },
+  ];
+  const { data } = await axios.post(
+    url,
+    { variables },
+    { headers: { Authorization: BOTGHOST_API_TOKEN, "Content-Type": "application/json" } }
+  );
+  return data;
+}
+
+/**
+ * Pousse l'état activé/désactivé des commandes d'un serveur vers BotGhost.
+ */
+export async function pushCommandsToBotGhost(guildId, commands) {
+  const { BOTGHOST_BOT_ID, BOTGHOST_WEBHOOK_EVENT_ID, BOTGHOST_API_TOKEN } = process.env;
+  if (!BOTGHOST_BOT_ID || !BOTGHOST_WEBHOOK_EVENT_ID || !BOTGHOST_API_TOKEN) {
+    console.warn("[botghost] Webhook non configuré — push commands ignoré.");
+    return { skipped: true };
+  }
+  const url = `https://api.botghost.com/webhook/${BOTGHOST_BOT_ID}/${BOTGHOST_WEBHOOK_EVENT_ID}`;
+  const variables = [
+    { name: "Guild ID", variable: "{guildId}", value: guildId },
+    { name: "Commands JSON", variable: "{commandsJson}", value: JSON.stringify(commands) },
+  ];
+  const { data } = await axios.post(
+    url,
+    { variables },
+    { headers: { Authorization: BOTGHOST_API_TOKEN, "Content-Type": "application/json" } }
+  );
+  return data;
+}

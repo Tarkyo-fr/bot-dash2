@@ -5,6 +5,9 @@ import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import guildsRoutes from "./routes/guilds.js";
 import configRoutes from "./routes/config.js";
+import reactionRolesRoutes from "./routes/reactionRoles.js";
+import commandsRoutes from "./routes/commands.js";
+import botRoutes from "./routes/bot.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,6 +30,9 @@ app.use(["/auth", "/api"], (req, res, next) => {
 app.use("/auth", authRoutes);
 app.use("/api/guilds", guildsRoutes);
 app.use("/api/guilds", configRoutes);
+app.use("/api/guilds", reactionRolesRoutes);
+app.use("/api/guilds", commandsRoutes);
+app.use("/api/bot", botRoutes);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
