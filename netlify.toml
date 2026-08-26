@@ -1,9 +1,8 @@
 [build]
   base = "frontend"
   command = "npm run build"
-  publish = "frontend/dist"
+  publish = "dist"
 
-# Toutes les routes React Router doivent retomber sur index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
