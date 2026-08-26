@@ -1,0 +1,15 @@
+import { Low } from "lowdb";
+import { JSONFile } from "lowdb/node";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const file = path.join(__dirname, "data", "db.json");
+
+const defaultData = { guildConfigs: {} };
+// guildConfigs: { [guildId]: { welcomeMessage, welcomeChannelId, autoRoleId, prefix, updatedAt, updatedBy } }
+
+export const db = new Low(new JSONFile(file), defaultData);
+await db.read();
+db.data ||= defaultData;
+await db.write();
