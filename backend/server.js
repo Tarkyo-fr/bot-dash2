@@ -55,6 +55,6 @@ app.use("/api/guilds", configRoutes);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => {
-  console.log(`Backend prêt sur http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Backend prêt sur le port ${PORT}`);
 });
